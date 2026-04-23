@@ -568,6 +568,11 @@
         </div>
         <button class="btn btn-green" onclick="openTaskModal()">＋ Ny opgave</button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="task-search" placeholder="🔍 Søg efter opgavenavn..." 
+          style="flex:1;min-width:180px;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;color:var(--text)"
+          onkeyup="onTaskSearchChange(this.value)">
+      </div>
       <div class="task-filters">
         <button class="filter-btn active" onclick="setFilter('all', this)">Alle</button>
         <button class="filter-btn" onclick="setFilter('active', this)">Aktive</button>
@@ -765,7 +770,7 @@ const TYPE_LABELS = { tree:'Træ', flower:'Blomst', veg:'Grøntsag', shrub:'Busk
 
 let plants = JSON.parse(localStorage.getItem('hk-plants') || '[]');
 let tasks  = JSON.parse(localStorage.getItem('hk-tasks')  || '[]');
-let editPlantId = null, editTaskId = null, taskFilter = 'all', plantFilter = 'all';
+let editPlantId = null, editTaskId = null, taskFilter = 'all', plantFilter = 'all', taskSearchQuery = '';
 let careData = {}; // { monthIndex: ['opgave1', 'opgave2', ...] }
 let calMonth = new Date().getMonth();
 let calView = 'list';
@@ -1208,6 +1213,11 @@ function setFilter(f, btn) {
   renderTasks();
 }
 
+function onTaskSearchChange(query) {
+  taskSearchQuery = query.toLowerCase();
+  renderTasks();
+}
+
 function renderTasks() {
   const today = new Date().toISOString().slice(0,10);
   let list = [...tasks].sort((a,b) => {
@@ -1220,6 +1230,15 @@ function renderTasks() {
   if (taskFilter === 'active') list = list.filter(t => !t.done);
   if (taskFilter === 'done')   list = list.filter(t => t.done);
   if (taskFilter === 'high')   list = list.filter(t => t.priority === 'high' && !t.done);
+  
+  // Søgefiltrer baseret på alt indhold i opgaven (titel, beskrivelse, placering)
+  if (taskSearchQuery) {
+    list = list.filter(t => 
+      t.title.toLowerCase().includes(taskSearchQuery) || 
+      (t.note && t.note.toLowerCase().includes(taskSearchQuery)) ||
+      (t.location && t.location.toLowerCase().includes(taskSearchQuery))
+    );
+  }
 
   const pending = tasks.filter(t => !t.done).length;
   document.getElementById('task-count').textContent = pending;
