@@ -939,8 +939,8 @@ function renderPlants() {
     }).join('');
     const typeClass = 'type-' + (p.type || 'other');
     return `
-    <div class="plant-card">
-      ${p.image ? `<img src="${p.image}" class="plant-card-img" alt="${esc(p.name)}" onclick="openPlantModal('${p.id}')" style="cursor:pointer">` : ''}
+    <div class="plant-card" onclick="openPlantModal('${p.id}')" style="cursor:pointer">
+      ${p.image ? `<img src="${p.image}" class="plant-card-img" alt="${esc(p.name)}">` : ''}
       <div class="plant-card-top">
         <div>
           <div class="plant-name">${esc(p.name)}</div>
@@ -954,7 +954,7 @@ function renderPlants() {
       <div class="plant-months">${dots}</div>
       <div class="plant-actions">
         <button class="btn btn-ghost btn-sm" onclick="openPlantModal('${p.id}')">✏️ Rediger</button>
-        <button class="btn btn-red btn-sm" onclick="deletePlant('${p.id}')">🗑 Slet</button>
+        <button class="btn btn-red btn-sm" onclick="event.stopPropagation();deletePlant('${p.id}')">🗑 Slet</button>
       </div>
     </div>`;
   }).join('');
@@ -1292,9 +1292,9 @@ function renderTasks() {
     const hoursStr = t.hours ? `⏱ ${hoursLabels[t.hours]}` : '';
     const noteStr = t.note ? `<div style="font-size:12px;color:var(--text-mid);margin-top:2px">${esc(t.note)}</div>` : '';
     return `
-    <div class="task-item ${t.done ? 'done' : ''}">
+    <div class="task-item ${t.done ? 'done' : ''}" onclick="openTaskModal('${t.id}')" style="cursor:pointer">
       <div class="priority-dot p-${t.priority||'medium'}"></div>
-      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask('${t.id}')">
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="event.stopPropagation();toggleTask('${t.id}')">
         ${t.done ? '✓' : ''}
       </div>
       <div class="task-content">
@@ -1304,10 +1304,10 @@ function renderTasks() {
         </div>
         ${noteStr}
       </div>
-      ${t.image ? `<img src="${t.image}" class="task-thumb" alt="" onclick="openTaskModal('${t.id}')">` : ''}
+      ${t.image ? `<img src="${t.image}" class="task-thumb" alt="">` : ''}
       <div style="display:flex;gap:5px;flex-shrink:0;flex-direction:column;align-items:flex-end">
         <button class="btn btn-ghost btn-sm" onclick="openTaskModal('${t.id}')">✏️</button>
-        <button class="btn btn-red btn-sm" onclick="deleteTask('${t.id}')">🗑</button>
+        <button class="btn btn-red btn-sm" onclick="event.stopPropagation();deleteTask('${t.id}')">🗑</button>
       </div>
     </div>`;
   }).join('');
