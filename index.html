@@ -294,9 +294,27 @@
       header p { font-size: 11px; }
       .header-icon { font-size: 24px; }
 
-      /* Nav */
-      nav { padding: 0 4px; }
-      nav button { padding: 10px 11px; font-size: 12px; white-space: nowrap; gap: 4px; }
+      /* Nav → fixed bottom bar */
+      nav {
+        position: fixed; bottom: 0; left: 0; right: 0; top: auto;
+        border-bottom: none; border-top: 2px solid var(--border);
+        padding: 0; gap: 0;
+        justify-content: space-around;
+        background: var(--white);
+        z-index: 100;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      nav button {
+        flex: 1; flex-direction: column; align-items: center; justify-content: center;
+        padding: 10px 4px 8px; gap: 3px;
+        font-size: 10px; font-weight: 600;
+        border-bottom: none; border-top: 3px solid transparent;
+        margin-bottom: 0; margin-top: -2px;
+        white-space: nowrap; min-width: 0;
+      }
+      nav button .nav-icon { font-size: 22px; line-height: 1; }
+      nav button.active { border-top-color: var(--green-dark); border-bottom-color: transparent; }
+      main { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
 
       /* Layout */
       main { padding: 10px 10px; }
@@ -351,7 +369,8 @@
     }
 
     @media (max-width: 380px) {
-      nav button { padding: 10px 9px; font-size: 11px; }
+      nav button { padding: 8px 2px 6px; font-size: 9px; }
+      nav button .nav-icon { font-size: 20px; }
       .month-nav { padding: 6px 10px; }
       .month-title { font-size: 15px; min-width: 100px; }
       .btn { padding: 7px 12px; font-size: 12px; }
@@ -485,16 +504,16 @@
   <div class="header-file-controls">
     <span class="file-status" id="file-status">💾 Ingen datafil</span>
     <button class="hdr-btn" onclick="pickSaveFile()" title="Tilknyt en JSON-fil – opdateres automatisk ved hvert gem">📂 Datafil</button>
-    <button class="hdr-btn" onclick="exportJSON()" title="Download data som JSON">⬇ Eksporter</button>
-    <button class="hdr-btn" onclick="importJSON()" title="Indlæs data fra JSON-fil">⬆ Importer</button>
+    <button class="hdr-btn" onclick="exportJSON()" title="Download data som JSON">⬇ Eks.</button>
+    <button class="hdr-btn" onclick="importJSON()" title="Indlæs data fra JSON-fil">⬆ Imp.</button>
   </div>
 </header>
 
 <nav>
-  <button class="active" onclick="switchTab('plants')" id="tab-plants">🌱 Planter <span class="badge" id="plant-count">0</span></button>
-  <button onclick="switchTab('calendar')" id="tab-calendar">📅 Årskalender</button>
-  <button onclick="switchTab('tasks')" id="tab-tasks">✅ Opgaver <span class="badge" id="task-count">0</span></button>
-  <button onclick="switchTab('map')" id="tab-map">🗺️ Havekort</button>
+  <button class="active" onclick="switchTab('plants')" id="tab-plants"><span class="nav-icon">🌱</span>Planter <span class="badge" id="plant-count">0</span></button>
+  <button onclick="switchTab('calendar')" id="tab-calendar"><span class="nav-icon">📅</span>Kalender</button>
+  <button onclick="switchTab('tasks')" id="tab-tasks"><span class="nav-icon">✅</span>Opgaver <span class="badge" id="task-count">0</span></button>
+  <button onclick="switchTab('map')" id="tab-map"><span class="nav-icon">🗺️</span>Kort</button>
 </nav>
 
 <main>
