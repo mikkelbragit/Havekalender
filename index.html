@@ -212,6 +212,31 @@
     .cal-item-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
     .cal-item-name { font-size: 14px; font-weight: 700; color: var(--green-dark); }
     .cal-item-care { font-size: 13px; color: var(--text-mid); margin-top: 2px; line-height: 1.5; }
+
+    /* ── Calendar grid view ── */
+    .cal-grid-wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .cal-grid-month {
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+      transition: box-shadow 0.15s;
+    }
+    .cal-grid-month:hover { box-shadow: 0 3px 10px var(--shadow); }
+    .cal-grid-current { box-shadow: 0 0 0 2px var(--accent) !important; }
+    .cal-grid-header {
+      padding: 7px 10px; font-size: 13px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .cal-grid-badge {
+      font-size: 11px; font-weight: 700;
+      background: rgba(255,255,255,0.3); border-radius: 10px; padding: 1px 7px;
+    }
+    .cal-grid-body { padding: 6px 8px; min-height: 36px; background: var(--white); }
+    .cal-grid-task {
+      font-size: 11px; color: var(--text); padding: 3px 0;
+      border-bottom: 1px solid var(--border); line-height: 1.4;
+    }
+    .cal-grid-task:last-child { border-bottom: none; }
+    .cal-grid-plant-name { font-weight: 700; color: var(--green-dark); }
+    .cal-grid-empty { font-size: 11px; color: #bbb; text-align: center; padding: 8px 0; }
     .empty-state {
       text-align: center; padding: 48px 16px;
       color: var(--text-mid); font-size: 14px;
@@ -257,6 +282,10 @@
     .p-medium { background: var(--accent); }
     .p-low    { background: var(--green-mid); }
     .overdue  { color: var(--red); font-weight: 600; }
+    .cat-badge { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap; }
+    .cat-beskær { background: var(--blue-light); color: var(--blue); }
+    .cat-høst   { background: var(--accent-light); color: var(--accent); }
+    .cat-andet  { background: #f0f0f0; color: #555; }
 
     /* ── Modal ── */
     .overlay {
@@ -346,6 +375,11 @@
       #plant-type-filters::-webkit-scrollbar { display: none; }
       .filter-btn { flex-shrink: 0; }
 
+      /* Calendar grid */
+      .cal-grid-wrap { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+      .cal-grid-header { font-size: 12px; padding: 5px 8px; }
+      .cal-grid-task { font-size: 10px; }
+
       /* Calendar */
       .month-selector { gap: 8px; flex-wrap: nowrap; }
       .month-title { font-size: 17px; min-width: 120px; }
@@ -397,6 +431,13 @@
       line-height: 1; flex-shrink: 0;
     }
     .care-list-remove:hover { color: var(--red); }
+    .care-detail-btn {
+      background: var(--blue-light); border: 1px solid #b8d4f0;
+      border-radius: 5px; padding: 2px 8px; cursor: pointer;
+      font-size: 11px; font-weight: 600; color: var(--blue);
+      flex-shrink: 0; transition: all 0.15s;
+    }
+    .care-detail-btn:hover { background: var(--blue); color: white; }
     .care-add-row { display: flex; gap: 6px; margin-top: 2px; }
     .care-add-row input { flex: 1; }
     .care-add-btn {
@@ -555,6 +596,7 @@
         <div style="display:flex;gap:6px">
           <button class="filter-btn cal-view-btn active" data-view="list" onclick="setCalView('list',this)">☰ Liste</button>
           <button class="filter-btn cal-view-btn" data-view="wheel" onclick="setCalView('wheel',this)">◎ Årshjul</button>
+          <button class="filter-btn cal-view-btn" data-view="grid" onclick="setCalView('grid',this)">⊞ Oversigt</button>
         </div>
       </div>
       <div id="cal-month-nav">
@@ -563,6 +605,37 @@
           <div class="month-title" id="cal-month-title"></div>
           <button class="month-nav" onclick="changeMonth(1)">›</button>
           <div class="season-badge" id="cal-season"></div>
+        </div>
+      </div>
+      <div id="cal-filters">
+        <div class="task-filters" id="cal-filter-type">
+          <button class="filter-btn active" onclick="setCalFilter('type','all',this)">Alle typer</button>
+          <button class="filter-btn" onclick="setCalFilter('type','flower',this)">🌸 Blomst</button>
+          <button class="filter-btn" onclick="setCalFilter('type','tree',this)">🌳 Træ</button>
+          <button class="filter-btn" onclick="setCalFilter('type','shrub',this)">🌿 Busk</button>
+          <button class="filter-btn" onclick="setCalFilter('type','veg',this)">🥦 Grøntsag</button>
+          <button class="filter-btn" onclick="setCalFilter('type','herb',this)">🌿 Urt</button>
+          <button class="filter-btn" onclick="setCalFilter('type','other',this)">🪴 Andet</button>
+        </div>
+        <div class="task-filters" id="cal-filter-category">
+          <button class="filter-btn active" onclick="setCalFilter('category','all',this)">Alle kategorier</button>
+          <button class="filter-btn" onclick="setCalFilter('category','beskær',this)">✂️ Beskær</button>
+          <button class="filter-btn" onclick="setCalFilter('category','høst',this)">🌾 Høst</button>
+          <button class="filter-btn" onclick="setCalFilter('category','andet',this)">📦 Andet</button>
+        </div>
+        <div class="task-filters" id="cal-filter-priority">
+          <button class="filter-btn active" onclick="setCalFilter('priority','all',this)">Alle prioriteter</button>
+          <button class="filter-btn" onclick="setCalFilter('priority','high',this)">🔴 Høj</button>
+          <button class="filter-btn" onclick="setCalFilter('priority','medium',this)">🟡 Mellem</button>
+          <button class="filter-btn" onclick="setCalFilter('priority','low',this)">🟢 Lav</button>
+        </div>
+        <div class="task-filters" id="cal-filter-hours">
+          <button class="filter-btn active" onclick="setCalFilter('hours','all',this)">Alle estimater</button>
+          <button class="filter-btn" onclick="setCalFilter('hours','mini',this)">Mini</button>
+          <button class="filter-btn" onclick="setCalFilter('hours','lille',this)">Lille</button>
+          <button class="filter-btn" onclick="setCalFilter('hours','mellem',this)">Mellem</button>
+          <button class="filter-btn" onclick="setCalFilter('hours','større',this)">Større</button>
+          <button class="filter-btn" onclick="setCalFilter('hours','projekt',this)">Projekt</button>
         </div>
       </div>
       <div id="cal-list">
@@ -574,6 +647,7 @@
         </div>
       </div>
       <div id="cal-wheel" style="display:none;margin-top:8px"></div>
+      <div id="cal-grid" style="display:none;margin-top:8px"><div class="cal-grid-wrap"></div></div>
     </div>
   </div>
 
@@ -592,11 +666,17 @@
           style="flex:1;min-width:180px;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;color:var(--text)"
           onkeyup="onTaskSearchChange(this.value)">
       </div>
-      <div class="task-filters">
+      <div class="task-filters" id="task-status-filters">
         <button class="filter-btn active" onclick="setFilter('all', this)">Alle</button>
         <button class="filter-btn" onclick="setFilter('active', this)">Aktive</button>
         <button class="filter-btn" onclick="setFilter('done', this)">Færdige</button>
         <button class="filter-btn" onclick="setFilter('high', this)">🔴 Vigtige</button>
+      </div>
+      <div class="task-filters" id="task-category-filters">
+        <button class="filter-btn active" onclick="setCategoryFilter('all', this)">Alle kategorier</button>
+        <button class="filter-btn" onclick="setCategoryFilter('beskær', this)">✂️ Beskær</button>
+        <button class="filter-btn" onclick="setCategoryFilter('høst', this)">🌾 Høst</button>
+        <button class="filter-btn" onclick="setCategoryFilter('andet', this)">📦 Andet</button>
       </div>
       <div id="task-list"></div>
       <div id="task-empty" class="empty-state" style="display:none">
@@ -742,7 +822,16 @@
         <select id="t-plant" onchange="onTaskPlantChange(this)"></select>
       </div>
     </div>
-    <div class="form-grid" style="margin-top:12px">
+    <div class="form-grid cols2" style="margin-top:12px">
+      <div>
+        <label>Kategori</label>
+        <select id="t-category">
+          <option value="">— Ingen —</option>
+          <option value="beskær">✂️ Beskær</option>
+          <option value="høst">🌾 Høst</option>
+          <option value="andet">📦 Andet</option>
+        </select>
+      </div>
       <div>
         <label>Tidsestimat</label>
         <select id="t-hours">
@@ -787,6 +876,55 @@
   </div>
 </div>
 
+<!-- ══ CARE DETAIL MODAL ══ -->
+<div class="overlay" id="care-detail-modal" style="z-index:3000">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">Opgavedetaljer</div>
+      <button class="close-btn" onclick="closeCareDetail()">✕</button>
+    </div>
+    <div id="cd-title" style="font-size:13px;color:var(--text);padding:8px 10px;background:var(--green-pale);border:1px solid var(--border);border-radius:6px;margin-bottom:14px;line-height:1.4"></div>
+    <div class="form-grid cols2">
+      <div>
+        <label>Prioritet</label>
+        <select id="cd-priority">
+          <option value="low">Lav</option>
+          <option value="medium">Medium</option>
+          <option value="high">Høj</option>
+        </select>
+      </div>
+      <div>
+        <label>Kategori</label>
+        <select id="cd-category">
+          <option value="">— Ingen —</option>
+          <option value="beskær">✂️ Beskær</option>
+          <option value="høst">🌾 Høst</option>
+          <option value="andet">📦 Andet</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label>Tidsestimat</label>
+      <select id="cd-hours">
+        <option value="">— Ingen —</option>
+        <option value="mini">Mini (0–20 min)</option>
+        <option value="lille">Lille (20 min – 1 time)</option>
+        <option value="mellem">Mellem (1–3 timer)</option>
+        <option value="stoerre">Større (3–10 timer)</option>
+        <option value="projekt">Projekt (dage)</option>
+      </select>
+    </div>
+    <div style="margin-top:12px">
+      <label>Note</label>
+      <textarea id="cd-note" placeholder="Tilføj en note..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeCareDetail()">Annuller</button>
+      <button class="btn btn-green" onclick="saveCareDetail()">Gem</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ── Data ─────────────────────────────────────────────────────────────
@@ -802,10 +940,12 @@ const TYPE_LABELS = { tree:'Træ', flower:'Blomst', veg:'Grøntsag', shrub:'Busk
 
 let plants = JSON.parse(localStorage.getItem('hk-plants') || '[]');
 let tasks  = JSON.parse(localStorage.getItem('hk-tasks')  || '[]');
-let editPlantId = null, editTaskId = null, taskFilter = 'all', plantFilter = 'all', taskSearchQuery = '';
+let editPlantId = null, editTaskId = null, taskFilter = 'all', categoryFilter = 'all', plantFilter = 'all', taskSearchQuery = '';
+let currentCareMonth = null, currentCareIndex = null, currentCarePlantId = null;
 let careData = {}; // { monthIndex: ['opgave1', 'opgave2', ...] }
 let calMonth = new Date().getMonth();
 let calView = 'list';
+let calFilterCategory = 'all', calFilterPriority = 'all', calFilterHours = 'all', calFilterType = 'all';
 
 // Map state
 let gardenMap = null, gardenMapMarkers = [];
@@ -994,9 +1134,8 @@ function buildMonthToggles(active) {
 
 function normalizeCare(val) {
   if (!val) return [];
-  if (Array.isArray(val)) return val.filter(Boolean);
-  if (typeof val === 'string' && val.trim()) return [val.trim()];
-  return [];
+  const arr = Array.isArray(val) ? val : (typeof val === 'string' && val.trim() ? [val.trim()] : []);
+  return arr.filter(Boolean).map(x => typeof x === 'string' ? { title: x } : x);
 }
 
 function buildCareInputs(active) {
@@ -1022,7 +1161,8 @@ function renderCareList(i) {
   const items = careData[i] || [];
   el.innerHTML = items.map((item, j) =>
     `<div class="care-list-item">
-      <span>${esc(item)}</span>
+      <span>${esc(item.title)}</span>
+      <button class="care-detail-btn" onclick="openCareDetail(${i},${j})">Detalje</button>
       <button class="care-list-remove" onclick="removeCareItem(${i},${j})" title="Fjern">✕</button>
     </div>`
   ).join('');
@@ -1033,7 +1173,7 @@ function addCareItem(i) {
   const val = input.value.trim();
   if (!val) return;
   careData[i] = careData[i] || [];
-  careData[i].push(val);
+  careData[i].push({ title: val });
   input.value = '';
   renderCareList(i);
   input.focus();
@@ -1115,30 +1255,89 @@ function setCalView(view, btn) {
 }
 
 function renderCalendar() {
+  const isList  = calView === 'list';
   const isWheel = calView === 'wheel';
-  document.getElementById('cal-month-nav').style.display = isWheel ? 'none' : '';
-  document.getElementById('cal-list').style.display   = isWheel ? 'none' : '';
-  document.getElementById('cal-wheel').style.display  = isWheel ? '' : 'none';
+  const isGrid  = calView === 'grid';
+  document.getElementById('cal-month-nav').style.display = isList  ? '' : 'none';
+  document.getElementById('cal-filters').style.display   = isWheel ? 'none' : '';
+  document.getElementById('cal-list').style.display      = isList  ? '' : 'none';
+  document.getElementById('cal-wheel').style.display     = isWheel ? '' : 'none';
+  document.getElementById('cal-grid').style.display      = isGrid  ? '' : 'none';
   if (isWheel) { renderWheelCalendar(); return; }
+  if (isGrid)  { renderGridCalendar();  return; }
   renderListCalendar();
+}
+
+function renderGridCalendar() {
+  const curMonth = new Date().getMonth();
+
+  const getFilteredItems = (monthIndex) =>
+    plants
+      .filter(p => (p.activeMonths||[]).includes(monthIndex))
+      .filter(p => calFilterType === 'all' || p.type === calFilterType)
+      .flatMap(p => normalizeCare(p.care?.[monthIndex])
+        .filter(item => calFilterCategory === 'all' || item.category === calFilterCategory)
+        .filter(item => calFilterPriority === 'all' || (item.priority || 'medium') === calFilterPriority)
+        .filter(item => calFilterHours    === 'all' || item.hours === calFilterHours)
+        .map(item => ({ name: p.name, item: item.title }))
+      );
+
+  const counts = MONTHS.map((_, i) => getFilteredItems(i).length);
+  const maxCount = Math.max(...counts, 1);
+
+  document.querySelector('#cal-grid .cal-grid-wrap').innerHTML = MONTHS.map((_, i) => {
+    const taskItems = getFilteredItems(i);
+    const count = taskItems.length;
+    const ratio = count > 0 ? count / maxCount : 0;
+    const r = count === 0 ? 224 : Math.round(200 - 155 * ratio);
+    const g = count === 0 ? 224 : Math.round(221 - 115 * ratio);
+    const b = count === 0 ? 224 : Math.round(200 - 155 * ratio);
+    const headerBg   = `rgb(${r},${g},${b})`;
+    const headerText = count === 0 ? '#999' : (ratio > 0.45 ? 'white' : '#2d5a2d');
+
+    return `
+    <div class="cal-grid-month${i === curMonth ? ' cal-grid-current' : ''}" onclick="jumpToMonth(${i})" style="cursor:pointer">
+      <div class="cal-grid-header" style="background:${headerBg};color:${headerText}">
+        <span>${MONTHS_FULL[i]}</span>
+        ${count > 0 ? `<span class="cal-grid-badge">${count}</span>` : ''}
+      </div>
+      <div class="cal-grid-body">
+        ${taskItems.length === 0
+          ? `<div class="cal-grid-empty">Ingen opgaver</div>`
+          : taskItems.map(({name, item}) =>
+              `<div class="cal-grid-task"><span class="cal-grid-plant-name">${esc(name)}:</span> ${esc(item)}</div>`
+            ).join('')
+        }
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderListCalendar() {
   document.getElementById('cal-month-title').textContent = MONTHS_FULL[calMonth];
   document.getElementById('cal-season').textContent = SEASONS[calMonth];
-  const active = plants.filter(p => (p.activeMonths||[]).includes(calMonth));
+  let active = plants.filter(p => (p.activeMonths||[]).includes(calMonth));
+  if (calFilterType !== 'all') active = active.filter(p => p.type === calFilterType);
+
   const el = document.getElementById('cal-items');
   const empty = document.getElementById('cal-empty');
-  if (!active.length) { el.innerHTML = ''; empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  el.innerHTML = active.map(p => {
-    const items = normalizeCare(p.care?.[calMonth]);
-    const listHtml = items.length
-      ? `<ul class="cal-care-list">${items.map((item, j) =>
-          `<li>
-            <span>${esc(item)}</span>
+  const hasItemFilter = calFilterCategory !== 'all' || calFilterPriority !== 'all' || calFilterHours !== 'all';
+
+  const rows = active.map(p => {
+    // Keep original indices so the detail modal can find the item
+    const allItems = normalizeCare(p.care?.[calMonth]);
+    let indexed = allItems.map((item, j) => ({ item, j }));
+    if (calFilterCategory !== 'all') indexed = indexed.filter(({item}) => item.category === calFilterCategory);
+    if (calFilterPriority !== 'all') indexed = indexed.filter(({item}) => (item.priority || 'medium') === calFilterPriority);
+    if (calFilterHours    !== 'all') indexed = indexed.filter(({item}) => item.hours === calFilterHours);
+    if (hasItemFilter && !indexed.length) return null;
+
+    const listHtml = indexed.length
+      ? `<ul class="cal-care-list">${indexed.map(({item, j}) =>
+          `<li onclick="openCareDetailFromCalendar('${p.id}', ${j})" style="cursor:pointer">
+            <span>${esc(item.title)}</span>
             <button class="btn-add-task" id="cal-add-${p.id}-${j}"
-              onclick="addCareToTask('${p.id}', ${j}, this)">＋ Opgave</button>
+              onclick="event.stopPropagation();addCareToTask('${p.id}', ${j}, this)">＋ Opgave</button>
           </li>`).join('')}</ul>`
       : `<div class="cal-item-care"><em style="color:#aaa">Ingen opgaver angivet for denne måned</em></div>`;
     return `
@@ -1150,7 +1349,11 @@ function renderListCalendar() {
         ${listHtml}
       </div>
     </div>`;
-  }).join('');
+  }).filter(Boolean);
+
+  if (!rows.length) { el.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  el.innerHTML = rows.join('');
 }
 
 function renderWheelCalendar() {
@@ -1201,7 +1404,7 @@ function renderWheelCalendar() {
     // Tasks
     const taskItems = plants
       .filter(p => (p.activeMonths||[]).includes(i))
-      .flatMap(p => normalizeCare(p.care?.[i]));
+      .flatMap(p => normalizeCare(p.care?.[i]).map(x => x.title));
     const fsTask  = Math.max(7, Math.round(size * 0.017));
     const tColor  = isCurrent ? 'rgba(255,255,255,0.92)' : '#2d5a2d';
     const maxShow = Math.min(taskItems.length, rTasks.length);
@@ -1240,9 +1443,27 @@ function jumpToMonth(i) {
 // ── TASKS ────────────────────────────────────────────────────────────
 function setFilter(f, btn) {
   taskFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#task-status-filters .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderTasks();
+}
+
+function setCategoryFilter(cat, btn) {
+  categoryFilter = cat;
+  document.querySelectorAll('#task-category-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function setCalFilter(dimension, value, btn) {
+  if (dimension === 'category') calFilterCategory = value;
+  else if (dimension === 'priority') calFilterPriority = value;
+  else if (dimension === 'hours')    calFilterHours    = value;
+  else if (dimension === 'type')     calFilterType     = value;
+  document.querySelectorAll(`#cal-filter-${dimension} .filter-btn`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (calView === 'grid') renderGridCalendar();
+  else renderListCalendar();
 }
 
 function onTaskSearchChange(query) {
@@ -1262,6 +1483,7 @@ function renderTasks() {
   if (taskFilter === 'active') list = list.filter(t => !t.done);
   if (taskFilter === 'done')   list = list.filter(t => t.done);
   if (taskFilter === 'high')   list = list.filter(t => t.priority === 'high' && !t.done);
+  if (categoryFilter !== 'all') list = list.filter(t => t.category === categoryFilter);
   
   // Søgefiltrer baseret på alt indhold i opgaven (titel, beskrivelse, placering)
   if (taskSearchQuery) {
@@ -1290,6 +1512,8 @@ function renderTasks() {
     const locStr  = t.location ? `📍 ${esc(t.location)}` : '';
     const hoursLabels = { mini: 'Mini (0–20 min)', lille: 'Lille (20 min–1 t)', mellem: 'Mellem (1–3 t)', stoerre: 'Større (3–10 t)', projekt: 'Projekt (dage)' };
     const hoursStr = t.hours ? `⏱ ${hoursLabels[t.hours]}` : '';
+    const catIcons = { beskær: '✂️', høst: '🌾', andet: '📦' };
+    const catStr = t.category ? `<span class="cat-badge cat-${t.category}">${catIcons[t.category]} ${t.category.charAt(0).toUpperCase() + t.category.slice(1)}</span>` : '';
     const noteStr = t.note ? `<div style="font-size:12px;color:var(--text-mid);margin-top:2px">${esc(t.note)}</div>` : '';
     return `
     <div class="task-item ${t.done ? 'done' : ''}" onclick="openTaskModal('${t.id}')" style="cursor:pointer">
@@ -1300,7 +1524,7 @@ function renderTasks() {
       <div class="task-content">
         <div class="task-title">${esc(t.title)}</div>
         <div class="task-meta">
-          ${dueStr} ${plantStr} ${locStr} ${hoursStr}
+          ${catStr} ${dueStr} ${plantStr} ${locStr} ${hoursStr}
         </div>
         ${noteStr}
       </div>
@@ -1325,6 +1549,7 @@ function openTaskModal(id) {
   document.getElementById('t-title').value = t?.title || '';
   document.getElementById('t-due').value = t?.due || '';
   document.getElementById('t-priority').value = t?.priority || 'medium';
+  document.getElementById('t-category').value = t?.category || '';
   document.getElementById('t-hours').value = t?.hours != null ? t.hours : '';
   document.getElementById('t-note').value = t?.note || '';
   document.getElementById('t-location').value = t?.location || '';
@@ -1347,6 +1572,7 @@ function saveTask() {
     title,
     due:      document.getElementById('t-due').value,
     priority: document.getElementById('t-priority').value,
+    category: document.getElementById('t-category').value || null,
     hours:    document.getElementById('t-hours').value || null,
     plantId:  document.getElementById('t-plant').value || null,
     location: document.getElementById('t-location').value.trim(),
@@ -1398,16 +1624,18 @@ function addCareToTask(plantId, itemIndex, btn) {
   const plant = plants.find(p => p.id === plantId);
   if (!plant) return;
   const items = normalizeCare(plant.care?.[calMonth]);
-  const title = items[itemIndex];
-  if (!title) return;
+  const careItem = items[itemIndex];
+  if (!careItem) return;
   const task = {
-    id: uid(), title,
-    due: '', priority: 'medium',
+    id: uid(), title: careItem.title,
+    due: '', priority: careItem.priority || 'medium',
+    category: careItem.category || null,
+    hours: careItem.hours || null,
     plantId,
     location: plant.location || '',
     lat: plant.lat ?? null,
     lng: plant.lng ?? null,
-    note: '', done: false, created: now(),
+    note: careItem.note || '', done: false, created: now(),
   };
   tasks.push(task);
   save();
@@ -1722,6 +1950,64 @@ function fmtDate(s) {
   return d.toLocaleDateString('da-DK', {day:'numeric', month:'short', year:'numeric'});
 }
 
+function openCareDetail(month, index) {
+  currentCareMonth = month;
+  currentCareIndex = index;
+  currentCarePlantId = null;
+  const item = careData[month][index];
+  document.getElementById('cd-title').textContent = item.title;
+  document.getElementById('cd-priority').value = item.priority || 'medium';
+  document.getElementById('cd-category').value = item.category || '';
+  document.getElementById('cd-hours').value = item.hours || '';
+  document.getElementById('cd-note').value = item.note || '';
+  document.getElementById('care-detail-modal').classList.add('open');
+}
+
+function openCareDetailFromCalendar(plantId, itemIndex) {
+  currentCarePlantId = plantId;
+  currentCareMonth = calMonth;
+  currentCareIndex = itemIndex;
+  const plant = plants.find(p => p.id === plantId);
+  const item = normalizeCare(plant.care?.[calMonth])[itemIndex];
+  document.getElementById('cd-title').textContent = item.title;
+  document.getElementById('cd-priority').value = item.priority || 'medium';
+  document.getElementById('cd-category').value = item.category || '';
+  document.getElementById('cd-hours').value = item.hours || '';
+  document.getElementById('cd-note').value = item.note || '';
+  document.getElementById('care-detail-modal').classList.add('open');
+}
+
+function saveCareDetail() {
+  if (currentCarePlantId) {
+    const plant = plants.find(p => p.id === currentCarePlantId);
+    const items = normalizeCare(plant.care?.[currentCareMonth]);
+    const item = items[currentCareIndex];
+    item.priority = document.getElementById('cd-priority').value;
+    item.category = document.getElementById('cd-category').value || null;
+    item.hours    = document.getElementById('cd-hours').value || null;
+    item.note     = document.getElementById('cd-note').value.trim();
+    plant.care[currentCareMonth] = items;
+    save();
+    closeCareDetail();
+    renderListCalendar();
+  } else {
+    const item = careData[currentCareMonth][currentCareIndex];
+    item.priority = document.getElementById('cd-priority').value;
+    item.category = document.getElementById('cd-category').value || null;
+    item.hours    = document.getElementById('cd-hours').value || null;
+    item.note     = document.getElementById('cd-note').value.trim();
+    closeCareDetail();
+    renderCareList(currentCareMonth);
+  }
+}
+
+function closeCareDetail() {
+  document.getElementById('care-detail-modal').classList.remove('open');
+  currentCareMonth = null;
+  currentCareIndex = null;
+  currentCarePlantId = null;
+}
+
 // Close modal on overlay click
 document.getElementById('plant-modal').addEventListener('click', function(e) {
   if (e.target === this) closePlantModal();
@@ -1729,62 +2015,534 @@ document.getElementById('plant-modal').addEventListener('click', function(e) {
 document.getElementById('task-modal').addEventListener('click', function(e) {
   if (e.target === this) closeTaskModal();
 });
+document.getElementById('care-detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCareDetail();
+});
 
 // ── Seed data if empty ────────────────────────────────────────────────
 if (!plants.length) {
+  const yr = new Date().getFullYear();
   plants = [
     {
-      id: uid(), name: 'Rosen', type: 'flower', location: 'Fronthave',
-      planted: '', note: 'Beskær kraftigt i marts. Gød regelmæssigt fra maj.',
+      id: uid(), name: 'Æbletræ', type: 'tree', location: 'Baghave',
+      planted: '', note: 'Cox Orange. Beskæres i vinterens ro, høstes september–oktober.',
+      activeMonths: [1,2,3,4,5,6,7,8,9],
+      care: {
+        1: [
+          { title: 'Vinterbeskæring', priority: 'high', category: 'beskær', hours: 'mellem', note: 'Fjern krydsende og indadgående grene. Luftig krone.' },
+        ],
+        2: [
+          { title: 'Afslut beskæring', priority: 'medium', category: 'beskær', hours: 'lille', note: 'Kalkhvidtning af stamme mod frostsprækker.' },
+        ],
+        3: [
+          { title: 'Hold øje med bladlus og frugtmøl', priority: 'medium', category: 'andet', hours: 'mini', note: 'Limring på stammen fanger kravlende skadedyr.' },
+        ],
+        4: [
+          { title: 'Udtyn frugter', priority: 'medium', category: 'andet', hours: 'lille', note: 'Efterlad kun én frugt pr. klase for bedre kvalitet.' },
+          { title: 'Gødning', priority: 'low', category: 'andet', hours: 'mini', note: 'Kvælstofrig gødning rundt om trækransen.' },
+        ],
+        5: [
+          { title: 'Bekæmp skurv ved behov', priority: 'medium', category: 'andet', hours: 'mini', note: 'Sprøjt ved vedvarende regnvejr.' },
+        ],
+        6: [
+          { title: 'Udtyn frugt igen', priority: 'low', category: 'andet', hours: 'mini', note: 'Frugt af god størrelse efter juni-fald.' },
+        ],
+        7: [
+          { title: 'Hold øje med frugtskimmel', priority: 'medium', category: 'andet', hours: 'mini', note: 'Fjern mumificerede frugter fra træet.' },
+        ],
+        8: [
+          { title: 'Høst tidlige sorter', priority: 'high', category: 'høst', hours: 'lille', note: 'Test modenhed: frøene skal være brune.' },
+        ],
+        9: [
+          { title: 'Høst modne æbler', priority: 'high', category: 'høst', hours: 'mellem', note: 'Opbevares køligt ved 4°C. Sortér og kassér beskadigede.' },
+          { title: 'Afgødning og kompost', priority: 'low', category: 'andet', hours: 'mini', note: 'Bred kompost ud om roden inden vinter.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Kirsebærtræ', type: 'tree', location: 'Sydvendt mur',
+      planted: '', note: 'Surkirsebær (Stevnskirsebær). Fugle er den største trussel ved høst.',
+      activeMonths: [2,3,4,5,6,7,9],
+      care: {
+        2: [
+          { title: 'Beskæring', priority: 'high', category: 'beskær', hours: 'mellem', note: 'Beskær kun i tørt vejr for at undgå svampesygdomme.' },
+        ],
+        3: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Kaliumrig gødning giver bedre frugtsmag.' },
+        ],
+        4: [
+          { title: 'Blomstrer – ingen behandling', priority: 'low', category: 'andet', hours: 'mini', note: 'Undgå sprøjtning under blomstring af hensyn til bier.' },
+        ],
+        5: [
+          { title: 'Opsæt fuglenet', priority: 'high', category: 'andet', hours: 'lille', note: 'Montér net inden frugterne farves røde.' },
+        ],
+        6: [
+          { title: 'Høst kirsebær', priority: 'high', category: 'høst', hours: 'mellem', note: 'Høst når frugterne er mørkerøde og sødme er opstået.' },
+        ],
+        7: [
+          { title: 'Fjern fuglenet og afslut høst', priority: 'medium', category: 'høst', hours: 'lille', note: '' },
+        ],
+        9: [
+          { title: 'Efterårsgødning', priority: 'low', category: 'andet', hours: 'mini', note: 'Kaliumgødning styrker træet til vinter.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Mirabelletræ', type: 'tree', location: 'Baghave',
+      planted: '', note: 'Tidlig sort, modner i juli–august. Meget produktiv.',
+      activeMonths: [2,3,4,5,6,7,8],
+      care: {
+        2: [
+          { title: 'Vinterbeskæring', priority: 'high', category: 'beskær', hours: 'mellem', note: 'Åbn kronen. Fjern vanrise (lodrette skud).' },
+        ],
+        3: [
+          { title: 'Limring mod frugtmøl', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        4: [
+          { title: 'Blomstring – hold øje med frost', priority: 'high', category: 'andet', hours: 'mini', note: 'Dæk evt. med fiberdug ved nattefrost under blomstring.' },
+        ],
+        5: [
+          { title: 'Udtynding af frugter', priority: 'medium', category: 'andet', hours: 'lille', note: 'Efterlad 5–8 cm mellem frugterne for god størrelse.' },
+          { title: 'Gødning', priority: 'low', category: 'andet', hours: 'mini', note: '' },
+        ],
+        6: [
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: 'Jævn fugt vigtig for at undgå frugtsplittelse.' },
+        ],
+        7: [
+          { title: 'Høst mirabeller', priority: 'high', category: 'høst', hours: 'mellem', note: 'Modner når frugterne er gule med rød bagudsn. og giver let.' },
+        ],
+        8: [
+          { title: 'Afslut høst', priority: 'medium', category: 'høst', hours: 'lille', note: 'Nedfaldne frugter fjernes straks for at undgå svamp.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Blommetræ', type: 'tree', location: 'Baghave',
+      planted: '', note: 'Victoria-blomme. Selvbærende sort. Høst august–september.',
       activeMonths: [2,3,4,5,6,7,8,9],
       care: {
-        2: 'Kraftig beskæring ned til 20-30 cm. Fjern dødt træ.',
-        3: 'Start gødning med rosenkompost. Hold øje med bladlus.',
-        4: 'Vand jævnligt. Bekæmp bladlus ved behov.',
-        5: 'Gød igen. Deadhead (fjern visne blomster) løbende.',
-        6: 'Deadhead løbende. Vand ved tørke.',
-        7: 'Deadhead. Pas på for svampesygdomme.',
-        8: 'Gød sidst i august. Stop deadheading for at forberede hvile.',
-        9: 'Dæk rødderne med kompost inden frost.',
+        2: [
+          { title: 'Beskæring', priority: 'high', category: 'beskær', hours: 'mellem', note: 'Fjern døde, syge og krydsende grene. Kun ved tørt vejr.' },
+        ],
+        3: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        4: [
+          { title: 'Blomstring – pas på frost', priority: 'high', category: 'andet', hours: 'mini', note: 'Dæk med fiberdug ved nattefrost.' },
+        ],
+        5: [
+          { title: 'Udtynding', priority: 'medium', category: 'andet', hours: 'lille', note: 'Undgå overbelastning som kan knække grene.' },
+        ],
+        6: [
+          { title: 'Vand jævnligt', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        7: [
+          { title: 'Støt tunge grene', priority: 'medium', category: 'andet', hours: 'mini', note: 'Brug stokke eller reb til tunge frugtgrene.' },
+        ],
+        8: [
+          { title: 'Høst blommer', priority: 'high', category: 'høst', hours: 'mellem', note: 'Høst i etaper efterhånden som frugterne modner.' },
+        ],
+        9: [
+          { title: 'Afslut høst og ryd nedfald', priority: 'medium', category: 'høst', hours: 'lille', note: '' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Jordbær', type: 'veg', location: 'Bede / højbed',
+      planted: '', note: 'Søde jordbær. Forny plantningen hvert 3. år med udløbere.',
+      activeMonths: [2,3,4,5,6,7,8,9],
+      care: {
+        2: [
+          { title: 'Fjern gammelt løv og ukrudt', priority: 'medium', category: 'beskær', hours: 'lille', note: 'Klip gammelt vissent løv væk tidligt om foråret.' },
+        ],
+        3: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Kaliumrig gødning giver sødere frugter.' },
+          { title: 'Læg jorddække', priority: 'low', category: 'andet', hours: 'lille', note: 'Halmstrå under planterne holder jordbær rene og rå.' },
+        ],
+        4: [
+          { title: 'Vand og ukrudtsbekæmpelse', priority: 'medium', category: 'andet', hours: 'lille', note: '' },
+        ],
+        5: [
+          { title: 'Fjern blomster fra 1. årsplanter', priority: 'low', category: 'andet', hours: 'mini', note: 'Giver stærkere planter og bedre høst næste år.' },
+        ],
+        6: [
+          { title: 'Høst jordbær', priority: 'high', category: 'høst', hours: 'lille', note: 'Høst dagligt for at undgå rådne frugter på planten.' },
+        ],
+        7: [
+          { title: 'Fortsæt høst', priority: 'high', category: 'høst', hours: 'lille', note: '' },
+          { title: 'Udlæg udløbere til nye planter', priority: 'medium', category: 'andet', hours: 'lille', note: 'Vælg de stærkeste udløbere fra sunde planter.' },
+        ],
+        8: [
+          { title: 'Fjern overskydende udløbere', priority: 'medium', category: 'beskær', hours: 'lille', note: '' },
+          { title: 'Efterårsgødning', priority: 'low', category: 'andet', hours: 'mini', note: '' },
+        ],
+        9: [
+          { title: 'Plant nye jordbærplanter', priority: 'high', category: 'andet', hours: 'mellem', note: 'Bedste plantetid er august–september for god etablering.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Fersken', type: 'tree', location: 'Sydvendt mur / drivhus',
+      planted: '', note: 'Kræver varmt og læfyldt sted. Sårbar over for bladkrulsygdom.',
+      activeMonths: [1,2,3,4,5,6,7,8],
+      care: {
+        1: [
+          { title: 'Vinterbeskæring', priority: 'high', category: 'beskær', hours: 'mellem', note: 'Beskær til ensidigt/palmeformet træ mod sydmur.' },
+        ],
+        2: [
+          { title: 'Bekæmp bladkrulsygdom', priority: 'high', category: 'andet', hours: 'mini', note: 'Sprøjt med kobber inden knopperne svulmer. Gentag 2 uger efter.' },
+        ],
+        3: [
+          { title: 'Blomstring – beskytt mod frost', priority: 'high', category: 'andet', hours: 'lille', note: 'Blomstrer tidligt og er frostsårbar. Dæk med fiberdug om natten.' },
+          { title: 'Håndbestøvning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Brug pensel til at overføre pollen ved koldt vejr uden insekter.' },
+        ],
+        4: [
+          { title: 'Udtynding af frugter', priority: 'high', category: 'andet', hours: 'lille', note: 'Max 1 frugt per 15 cm gren for god størrelse.' },
+        ],
+        5: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Kvælstof og kalium. Stop gødning i august.' },
+        ],
+        6: [
+          { title: 'Vand rigeligt', priority: 'high', category: 'andet', hours: 'mini', note: 'Manglende vand giver kernesplit og smag skader.' },
+        ],
+        7: [
+          { title: 'Sommerbeskæring', priority: 'medium', category: 'beskær', hours: 'lille', note: 'Fjern grene der vokser væk fra muren.' },
+        ],
+        8: [
+          { title: 'Høst ferskener', priority: 'high', category: 'høst', hours: 'lille', note: 'Modne når de giver let ved et blidt tryk. Spis hurtigt!' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Hindbær', type: 'shrub', location: 'Solrig bund langs hegn',
+      planted: '', note: 'Sommerhindbær (Glen Ample). Plant i rækker med støtte.',
+      activeMonths: [2,3,4,5,6,7,8,9,10],
+      care: {
+        2: [
+          { title: 'Beskæring af gamle stængler', priority: 'high', category: 'beskær', hours: 'lille', note: 'Klip alle stængler der bar frugt sidste år ned til jorden.' },
+          { title: 'Bind nye stængler op', priority: 'medium', category: 'andet', hours: 'lille', note: 'Fastgør nye skud til spaliertråde, 15 cm mellemrum.' },
+        ],
+        3: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Kompost eller specialgødning til bærbuske.' },
+        ],
+        4: [
+          { title: 'Ukrudtsbekæmpelse', priority: 'low', category: 'andet', hours: 'mini', note: '' },
+        ],
+        5: [
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        6: [
+          { title: 'Høst hindbær', priority: 'high', category: 'høst', hours: 'lille', note: 'Høst hver 2.-3. dag for at undgå overmodne bær.' },
+        ],
+        7: [
+          { title: 'Høst på sit højeste', priority: 'high', category: 'høst', hours: 'lille', note: '' },
+        ],
+        8: [
+          { title: 'Afslut høst, fjern brugte stængler', priority: 'medium', category: 'beskær', hours: 'lille', note: 'Klip frugtbærende stængler ned straks efter endt høst.' },
+        ],
+        9: [
+          { title: 'Høst efterårssorter', priority: 'medium', category: 'høst', hours: 'lille', note: 'Gælder for efterårshindbær-sorter.' },
+        ],
+        10: [
+          { title: 'Efterårsbeskæring af efterårssorter', priority: 'medium', category: 'beskær', hours: 'lille', note: 'Klip alle stængler ned til jorden efter frost.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Ribs', type: 'shrub', location: 'Halvskygge / nordside',
+      planted: '', note: 'Rød ribs. Trives i halvskygge. Let at dyrke.',
+      activeMonths: [1,2,3,4,5,6,7,9],
+      care: {
+        1: [
+          { title: 'Vinterbeskæring', priority: 'high', category: 'beskær', hours: 'lille', note: 'Fjern grene ældre end 4 år. Bevar 6–8 unge stængler.' },
+        ],
+        2: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Kompost eller universalgødning.' },
+        ],
+        3: [
+          { title: 'Ukrudtsbekæmpelse', priority: 'low', category: 'andet', hours: 'mini', note: '' },
+        ],
+        4: [
+          { title: 'Opsæt fuglenet', priority: 'high', category: 'andet', hours: 'lille', note: 'Fugle elsker ribs – net er nødvendigt.' },
+        ],
+        5: [
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        6: [
+          { title: 'Høst ribs', priority: 'high', category: 'høst', hours: 'lille', note: 'Klip hele drueklaser af med saks. Moden når klarrød.' },
+        ],
+        7: [
+          { title: 'Afslut høst og fjern net', priority: 'medium', category: 'høst', hours: 'mini', note: '' },
+        ],
+        9: [
+          { title: 'Efterårsgødning', priority: 'low', category: 'andet', hours: 'mini', note: '' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Plæne', type: 'other', location: 'Hele haven',
+      planted: '', note: 'Klippes fra april til oktober. Luftes og mosbehandles om foråret.',
+      activeMonths: [2,3,4,5,6,7,8,9,10],
+      care: {
+        2: [
+          { title: 'Luftning og vertikalskæring', priority: 'high', category: 'andet', hours: 'større', note: 'Brug luftegaffel eller motorluftter. Fjern mos og filt.' },
+          { title: 'Mosbehandling', priority: 'medium', category: 'andet', hours: 'lille', note: 'Sprøjt jernsulfat ved mosangreb. Riv ud efter 2 uger.' },
+        ],
+        3: [
+          { title: 'Første klipning', priority: 'medium', category: 'andet', hours: 'lille', note: 'Klip højt (6–7 cm) første gang. Blade må ikke være våde.' },
+          { title: 'Forårsthatning', priority: 'high', category: 'andet', hours: 'lille', note: 'Riv filt-lag op med en rive inden sæsonen.' },
+        ],
+        4: [
+          { title: 'Gødning', priority: 'high', category: 'andet', hours: 'lille', note: 'Kvælstofrig forårs-/sommergødning. Giver grøn og tæt plæne.' },
+          { title: 'Klip ugentligt', priority: 'medium', category: 'andet', hours: 'lille', note: '4–5 cm klippehøjde i vækstsæsonen.' },
+        ],
+        5: [
+          { title: 'Klip ugentligt', priority: 'medium', category: 'andet', hours: 'lille', note: 'Efterlad klip på plænen i tørvejr som kvælstofkilde.' },
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: '20–25 mm pr. uge ved tørke.' },
+        ],
+        6: [
+          { title: 'Klip og vand', priority: 'medium', category: 'andet', hours: 'lille', note: 'Klip lidt højere (5–6 cm) i sommervarmen.' },
+        ],
+        7: [
+          { title: 'Klip og vand', priority: 'medium', category: 'andet', hours: 'lille', note: 'Klip ikke kortere end 5 cm ved tørke.' },
+        ],
+        8: [
+          { title: 'Efterårsgødning', priority: 'high', category: 'andet', hours: 'lille', note: 'Kaliumrig gødning styrker plænen til vinter.' },
+        ],
+        9: [
+          { title: 'Klip og luftning', priority: 'medium', category: 'andet', hours: 'lille', note: 'Reducér klippehyppighed. Luftning nu giver bedre vinter.' },
+          { title: 'Reparér bare pletter med frø', priority: 'low', category: 'andet', hours: 'lille', note: 'Septemer er bedste måned for ny-såning.' },
+        ],
+        10: [
+          { title: 'Sidste klipning', priority: 'medium', category: 'andet', hours: 'lille', note: 'Klip ned til 4–5 cm inden vinter. Fjern blade fra plænen.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Roser', type: 'flower', location: 'Fronthave',
+      planted: '', note: 'Blandede haveroser. Beskær kraftigt i marts for kraftig blomstring.',
+      activeMonths: [2,3,4,5,6,7,8,9,10],
+      care: {
+        2: [
+          { title: 'Kraftig beskæring', priority: 'high', category: 'beskær', hours: 'mellem', note: 'Beskær ned til 20–30 cm. Fjern alt dødt og krydsende træ.' },
+        ],
+        3: [
+          { title: 'Gødning med rosenkompost', priority: 'medium', category: 'andet', hours: 'mini', note: 'Bred ud om roden. Hold fri af stammen.' },
+          { title: 'Hold øje med bladlus', priority: 'medium', category: 'andet', hours: 'mini', note: 'Bekæmp tidligt med sæbespray eller naturlige fjender.' },
+        ],
+        4: [
+          { title: 'Vand jævnligt', priority: 'medium', category: 'andet', hours: 'mini', note: 'Vand ved roden, ikke på blade – undgår svamp.' },
+          { title: 'Bekæmp bladlus', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        5: [
+          { title: 'Deadhead løbende', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Fjern visne blomster for at fremme ny blomstring.' },
+          { title: 'Gødning', priority: 'low', category: 'andet', hours: 'mini', note: '' },
+        ],
+        6: [
+          { title: 'Deadhead og vand', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Vand rigeligt i tørke.' },
+        ],
+        7: [
+          { title: 'Deadhead', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Hold øje for svampesygdomme (sort plet, meldug).' },
+        ],
+        8: [
+          { title: 'Sidst i august: stop deadheading', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Lad hyben dannes – signalerer roserne til at forberede hvile.' },
+          { title: 'Gødning (last call)', priority: 'low', category: 'andet', hours: 'mini', note: 'Ingen gødning efter august – fremmer for blødt væv.' },
+        ],
+        9: [
+          { title: 'Let efterårsbeskæring', priority: 'low', category: 'beskær', hours: 'mini', note: 'Klip lange skud lidt ned så de ikke blæser.' },
+        ],
+        10: [
+          { title: 'Dæk rødderne med kompost', priority: 'medium', category: 'andet', hours: 'mini', note: 'Beskytter rødderne mod frost.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Bøgehæk', type: 'shrub', location: 'Grundgrænse',
+      planted: '', note: 'Klippes typisk to gange: juni og august. Bøg beholder blade om vinteren.',
+      activeMonths: [3,4,5,6,7,8,9,10],
+      care: {
+        3: [
+          { title: 'Forårsinspektion', priority: 'low', category: 'andet', hours: 'mini', note: 'Tjek for vintersvampe og tørre partier. Fjern visne grene.' },
+        ],
+        4: [
+          { title: 'Gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Hækgødning langs roden.' },
+        ],
+        5: [
+          { title: 'Første klipning', priority: 'high', category: 'beskær', hours: 'større', note: 'Klip sider og top. Klip let konisk (bredere forneden) for bedre lysfald.' },
+        ],
+        6: [
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: 'Unge hække kræver ekstra vand de første år.' },
+        ],
+        7: [
+          { title: 'Vurder anden klipning', priority: 'low', category: 'andet', hours: 'mini', note: 'Kun nødvendigt ved kraftig vækst.' },
+        ],
+        8: [
+          { title: 'Anden klipning (vigtig!)', priority: 'high', category: 'beskær', hours: 'større', note: 'August-klipningen sikrer pæn form hen over vinteren.' },
+        ],
+        9: [
+          { title: 'Afslut beskæring senest', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Ingen beskæring efter september – nye skud kan fryse.' },
+        ],
+        10: [
+          { title: 'Fjern blade fra hækkens fod', priority: 'low', category: 'andet', hours: 'mini', note: 'Undgår ophobning af svampe og fugt ved roden.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Rhododendron', type: 'shrub', location: 'Nordside / halvskygge',
+      planted: '', note: 'Trives i surt, veldrænet jordbund. Hader kalk. Gød kun med rhododendrongødning.',
+      activeMonths: [2,3,4,5,6,8,9,10,11],
+      care: {
+        2: [
+          { title: 'Tjek for vinterskade', priority: 'low', category: 'andet', hours: 'mini', note: 'Fjern frostskadede skud inden væksten sætter ind.' },
+        ],
+        3: [
+          { title: 'Fjern visne blomsterstande', priority: 'medium', category: 'beskær', hours: 'lille', note: 'Bryd dem forsigtigt af med hånden for ikke at beskadige nye knopper.' },
+        ],
+        4: [
+          { title: 'Blomstring – nyd dem!', priority: 'low', category: 'andet', hours: 'mini', note: 'Ingen behandling under blomstring.' },
+        ],
+        5: [
+          { title: 'Gødning', priority: 'high', category: 'andet', hours: 'mini', note: 'Brug kun rhododendron-/azaleagødning. Aldrig kalkholdig gødning!' },
+          { title: 'Fjern visne blomsterstande', priority: 'medium', category: 'beskær', hours: 'lille', note: '' },
+        ],
+        6: [
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: 'Brug regnvand eller blødt vand – hårdt vand øger pH.' },
+        ],
+        8: [
+          { title: 'Stop gødning', priority: 'medium', category: 'andet', hours: 'mini', note: 'Gødning efter august kan give frostskader på nyt væv.' },
+        ],
+        9: [
+          { title: 'Mulch med surt materiale', priority: 'medium', category: 'andet', hours: 'lille', note: 'Brug barkmulch, fyrrenåle eller syrlig kompost.' },
+        ],
+        10: [
+          { title: 'Vinterbeskyttelse ved frostfølsomme sorter', priority: 'low', category: 'andet', hours: 'lille', note: 'Dæk med jutesæk ved kraftig frost (–15°C).' },
+        ],
+        11: [
+          { title: 'Tjek for udtørring', priority: 'low', category: 'andet', hours: 'mini', note: 'Vintervind udtørrer blade. Vand ved frostfrit vejr.' },
+        ],
+      },
+      created: now(),
+    },
+    {
+      id: uid(), name: 'Tulipaner', type: 'flower', location: 'Fronthave / rabatter',
+      planted: '', note: 'Plant løg om efteråret. Blomstrer april–maj. Lad bladene gulne naturligt.',
+      activeMonths: [9,10,11,2,3,4],
+      care: {
+        9: [
+          { title: 'Plant tulipanløg', priority: 'high', category: 'andet', hours: 'mellem', note: 'Plant 15 cm dybt, 10–15 cm afstand. Godt drænet jord.' },
+        ],
+        10: [
+          { title: 'Efterse plantning', priority: 'low', category: 'andet', hours: 'mini', note: 'Markér bede så du ikke graver op ved fejl om vinteren.' },
+        ],
+        11: [
+          { title: 'Dæk ved hård frost (valgfrit)', priority: 'low', category: 'andet', hours: 'mini', note: 'Løg klarer normalt frost. Dæk kun ved –15°C eller koldere.' },
+        ],
+        2: [
+          { title: 'Skyder op – ingen behandling', priority: 'low', category: 'andet', hours: 'mini', note: 'Lad dem komme op i deres eget tempo.' },
+        ],
+        3: [
+          { title: 'Blomstring!', priority: 'low', category: 'andet', hours: 'mini', note: 'Nyd dem. Vand ved ekstrem tørke.' },
+        ],
+        4: [
+          { title: 'Fjern visne blomster (ikke blade)', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Lad bladene stå til de gulner for at opbygge løget til næste år.' },
+        ],
       },
       created: now(),
     },
     {
       id: uid(), name: 'Tomater', type: 'veg', location: 'Drivhus / solfyldt bed',
-      planted: '', note: 'Sættes ud efter den kolde tid. Kræver meget sol og varme.',
+      planted: '', note: 'Kræver meget sol og varme. Bejles (fjern sideskud) ugentligt.',
       activeMonths: [1,2,3,4,5,6,7,8],
       care: {
-        1: 'Så indendørs i varmebænk (februar).',
-        2: 'Sæt ud i større potter. Hold vandret.',
-        3: 'Plant ud efter maj-kulde.',
-        4: 'Bejl (fjern sideskud). Gød ugentligt.',
-        5: 'Vand rigelt. Undgå vand på blade. Bejl løbende.',
-        6: 'Høst løbende. Gød kraftigt.',
-        7: 'Fortsæt høst og gødning.',
-        8: 'Optag de sidste frugter inden frost.',
+        1: [
+          { title: 'Så indendørs', priority: 'high', category: 'andet', hours: 'lille', note: 'Sæt i varmebænk (20–25°C). Lysforhold afgørende.' },
+        ],
+        2: [
+          { title: 'Prik ud i større potter', priority: 'medium', category: 'andet', hours: 'lille', note: 'Flyt til 9 cm potter når første par rigtige blade er fremme.' },
+        ],
+        3: [
+          { title: 'Plant ud (efter ishelgener)', priority: 'high', category: 'andet', hours: 'lille', note: 'Vent til efter ishelgener (11.–13. maj). Hærdn af først.' },
+        ],
+        4: [
+          { title: 'Bejl ugentligt', priority: 'high', category: 'beskær', hours: 'mini', note: 'Fjern sideskud i hjørnerne. Bevar 1–2 stængler pr. plante.' },
+          { title: 'Gødning ugentligt', priority: 'medium', category: 'andet', hours: 'mini', note: 'Tomatgødning rig på kalium og fosfor.' },
+        ],
+        5: [
+          { title: 'Vand rigeligt og jævnt', priority: 'high', category: 'andet', hours: 'mini', note: 'Ujævn vanding giver blomsterendeskimmel.' },
+          { title: 'Bejl og gøde', priority: 'medium', category: 'beskær', hours: 'mini', note: '' },
+        ],
+        6: [
+          { title: 'Høst løbende', priority: 'high', category: 'høst', hours: 'mini', note: 'Høst når frugterne er fuldt røde og giver let.' },
+          { title: 'Gød kraftigt', priority: 'medium', category: 'andet', hours: 'mini', note: '' },
+        ],
+        7: [
+          { title: 'Fortsæt høst og vanding', priority: 'high', category: 'høst', hours: 'mini', note: '' },
+          { title: 'Top planten', priority: 'medium', category: 'beskær', hours: 'mini', note: 'Fjern toppen af stænglerne midt i august for at sætte energi i eksisterende frugter.' },
+        ],
+        8: [
+          { title: 'Afslut høst inden frost', priority: 'high', category: 'høst', hours: 'lille', note: 'Grønne tomater kan eftermodnes indendørs ved 15–18°C.' },
+        ],
       },
       created: now(),
     },
     {
-      id: uid(), name: 'Æbletræ', type: 'tree', location: 'Baghave',
-      planted: '', note: 'Beskær i vinterens ro. Høstes typisk september.',
-      activeMonths: [1,2,3,4,5,7,8],
+      id: uid(), name: 'Kartofler', type: 'veg', location: 'Køkkenhave',
+      planted: '', note: 'Tidlige og sene sorter. Fordyrkede lægge-kartofler giver forspring.',
+      activeMonths: [2,3,4,5,6,7,8,9],
       care: {
-        1: 'Beskær i vinterens ro (feb–marts). Fjern krydsende grene.',
-        2: 'Afslut beskæring. Kalkhvidtning af stamme mod frostsprækker.',
-        3: 'Hold øje med bladlus og frugtmøl.',
-        4: 'Udtynding af frugter for bedre kvalitet.',
-        5: 'Gød med kvælstofrig gødning.',
-        7: 'Udtyn frugt igen ved behov. Hold øje med skurv.',
-        8: 'Høst modne æbler. Opbevares køligt.',
+        2: [
+          { title: 'Forspiring af lægge-kartofler', priority: 'medium', category: 'andet', hours: 'mini', note: 'Læg i lyst, køligt rum (10°C) med spiresiden opad. 4–6 uger.' },
+        ],
+        3: [
+          { title: 'Forbered jord', priority: 'medium', category: 'andet', hours: 'lille', note: 'Grav og tilsæt kompost. Kartofler elsker løs, veldrænet jord.' },
+        ],
+        4: [
+          { title: 'Plant kartofler', priority: 'high', category: 'andet', hours: 'mellem', note: 'Plant 10 cm dybt, 30 cm afstand, rækker 60 cm. Fra midt-april.' },
+        ],
+        5: [
+          { title: 'Hyp kartofler', priority: 'high', category: 'andet', hours: 'lille', note: 'Hyp op om planterne når de er 15–20 cm høje. Forhindrer grønfarvning.' },
+          { title: 'Hold øje med kartoffelskimmel', priority: 'medium', category: 'andet', hours: 'mini', note: 'Særligt ved fugtigt vejr. Fjern angrebne blade straks.' },
+        ],
+        6: [
+          { title: 'Hyp igen', priority: 'medium', category: 'andet', hours: 'lille', note: '' },
+          { title: 'Vand ved tørke', priority: 'medium', category: 'andet', hours: 'mini', note: 'Vand ved knolddannelse er særligt vigtig.' },
+        ],
+        7: [
+          { title: 'Høst tidlige sorter', priority: 'high', category: 'høst', hours: 'mellem', note: 'Tidlige sorter høstes når blomsterne falder af (ca. juli).' },
+          { title: 'Bekæmp kartoffelskimmel', priority: 'high', category: 'andet', hours: 'mini', note: 'Fjern og brænd angrebne planter. Behandl med kobbermiddel.' },
+        ],
+        8: [
+          { title: 'Afslut høst af sene sorter', priority: 'high', category: 'høst', hours: 'større', note: 'Lad knoldene tørre 1–2 timer inden opbevaring.' },
+        ],
+        9: [
+          { title: 'Opbevaring og sortering', priority: 'medium', category: 'andet', hours: 'lille', note: 'Opbevar mørkt og køligt (4–8°C). Kassér beskadigede.' },
+        ],
       },
       created: now(),
     },
   ];
   tasks = [
-    { id: uid(), title: 'Køb jord og kompost', done: false, due: '', priority: 'medium', plantId: null, note: 'Til forårets udplantning.', created: now() },
-    { id: uid(), title: 'Beskær roserne', done: false, due: new Date(new Date().getFullYear(), 2, 15).toISOString().slice(0,10), priority: 'high', plantId: plants[0].id, note: 'Husk handsker. Beskær ned til 20-30 cm.', created: now() },
-    { id: uid(), title: 'Så tomater indendørs', done: false, due: new Date(new Date().getFullYear(), 1, 10).toISOString().slice(0,10), priority: 'medium', plantId: plants[1].id, note: '', created: now() },
+    { id: uid(), title: 'Køb jord og kompost til foråret', done: false, due: `${yr}-02-15`, priority: 'medium', category: null, hours: 'lille', plantId: null, note: 'Til udplantning og hyphøj.', created: now() },
+    { id: uid(), title: 'Beskær roserne', done: false, due: `${yr}-03-15`, priority: 'high', category: 'beskær', hours: 'mellem', plantId: plants.find(p=>p.name==='Roser').id, note: 'Husk handsker. Ned til 20–30 cm.', created: now() },
+    { id: uid(), title: 'Så tomater indendørs', done: false, due: `${yr}-02-10`, priority: 'high', category: 'andet', hours: 'lille', plantId: plants.find(p=>p.name==='Tomater').id, note: 'Varmebænk 20–25°C.', created: now() },
+    { id: uid(), title: 'Bekæmp bladkrulsygdom på fersken', done: false, due: `${yr}-02-20`, priority: 'high', category: 'andet', hours: 'mini', plantId: plants.find(p=>p.name==='Fersken').id, note: 'Sprøjt med kobber inden knopperne svulmer.', created: now() },
+    { id: uid(), title: 'Plant tulipanløg', done: true, due: `${yr}-10-15`, priority: 'medium', category: 'andet', hours: 'mellem', plantId: plants.find(p=>p.name==='Tulipaner').id, note: '15 cm dybt, 10–15 cm afstand.', created: now() },
+    { id: uid(), title: 'Første plæneklipning', done: false, due: `${yr}-03-25`, priority: 'low', category: 'andet', hours: 'lille', plantId: plants.find(p=>p.name==='Plæne').id, note: 'Klip højt (6–7 cm) første gang.', created: now() },
+    { id: uid(), title: 'Opsæt fuglenet over kirsebær', done: false, due: `${yr}-05-20`, priority: 'high', category: 'andet', hours: 'lille', plantId: plants.find(p=>p.name==='Kirsebærtræ').id, note: 'Inden frugterne begynder at farves røde.', created: now() },
+    { id: uid(), title: 'Forspir kartofler', done: false, due: `${yr}-02-25`, priority: 'medium', category: 'andet', hours: 'mini', plantId: plants.find(p=>p.name==='Kartofler').id, note: 'Lyst rum, 10°C, spireside opad.', created: now() },
+    { id: uid(), title: 'Udtyn mirabeller', done: false, due: `${yr}-05-25`, priority: 'medium', category: 'andet', hours: 'lille', plantId: plants.find(p=>p.name==='Mirabelletræ').id, note: '5–8 cm mellemrum for god størrelse.', created: now() },
+    { id: uid(), title: 'Klip bøgehæk (sommer)', done: false, due: `${yr}-08-10`, priority: 'high', category: 'beskær', hours: 'større', plantId: plants.find(p=>p.name==='Bøgehæk').id, note: 'August-klipningen er vigtigst for vinterpæn form.', created: now() },
   ];
   save();
 }
