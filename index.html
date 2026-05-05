@@ -1561,7 +1561,10 @@ function openTaskModal(id) {
   sel.innerHTML = '<option value="">— Ingen —</option>' +
     plants.map(p => `<option value="${p.id}" ${t?.plantId===p.id ? 'selected':''}>${esc(p.name)}</option>`).join('');
   document.getElementById('task-modal').classList.add('open');
-  setTimeout(() => initTaskMap(t?.lat || null, t?.lng || null), 80);
+  setTimeout(() => {
+    initTaskMap(t?.lat || null, t?.lng || null);
+    if (!id) autoLocateTask();
+  }, 80);
 }
 
 function saveTask() {
@@ -1929,6 +1932,28 @@ function initTaskMap(lat, lng) {
 function showTaskMapCoords(lat, lng) {
   document.getElementById('task-map-coords').textContent =
     `Markeret: ${lat.toFixed(6)}, ${lng.toFixed(6)} — Klik igen for at flytte`;
+}
+
+function autoLocateTask() {
+  if (!navigator.geolocation) return;
+  document.getElementById('task-map-coords').textContent = '📍 Finder din placering...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      document.getElementById('t-lat').value = lat;
+      document.getElementById('t-lng').value = lng;
+      showTaskMapCoords(lat, lng);
+      if (taskMap) {
+        taskMap.setView([lat, lng], 18);
+        if (taskMapMarker) taskMapMarker.setLatLng([lat, lng]);
+        else taskMapMarker = L.marker([lat, lng]).addTo(taskMap);
+      }
+    },
+    () => {
+      document.getElementById('task-map-coords').textContent = 'Klik på kortet for at markere opgavens placering';
+    },
+    { timeout: 8000, maximumAge: 60000 }
+  );
 }
 
 function locateMe() {
